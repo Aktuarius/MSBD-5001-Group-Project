@@ -1,1 +1,0 @@
-Histograms for Kenya
