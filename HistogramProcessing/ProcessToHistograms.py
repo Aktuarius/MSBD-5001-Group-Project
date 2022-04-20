@@ -111,6 +111,10 @@ def create_histograms(merged_data):
         merged_hist_data[year] = hist
     return merged_hist_data
 
+def flatten_bins_bands(merged_hist_data):
+    for year in merged_hist_data:
+        merged_hist_data[year] = np.reshape(np.transpose(merged_hist_data[year],axes = (0,2,1)),newshape=(576,29),order = 'F')
+    return merged_hist_data
 
 if __name__ == "__main__":
     #,"Ethiopia","Malawi"
@@ -138,6 +142,7 @@ if __name__ == "__main__":
         band_dict_surface_mask,band_dict_temp_mask,landcover_band_dict = mask_image(landcover_band_dict,band_dict_surface,band_dict_temp)
         merged_data = merge_bands(band_dict_surface_mask,band_dict_temp_mask)
         merged_hist_data = create_histograms(merged_data=merged_data)
+        merged_hist_data = flatten_bins_bands(merged_hist_data)
         #start year = 2009
         for i in merged_hist_data:
             np.save(str(Path(Path.cwd(),"ProcessedHistograms",f"{country}_{2009 + i - 1}.npy").resolve()),merged_hist_data[i])
