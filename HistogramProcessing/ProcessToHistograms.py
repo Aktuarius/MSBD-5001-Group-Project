@@ -123,8 +123,8 @@ if __name__ == "__main__":
         filepath_surface = [i for i in list(Path(Path.cwd()/"TIFF"/country).resolve().iterdir()) if "Surface" in str(i)][0]
         surface_data = gdal.Open(str(filepath_surface)).ReadAsArray()
         surface_data = np.transpose(surface_data,axes = (1,2,0))
-        timestep_dict_surface = split_images(array=surface_data,total_bands=29*7,yearcount=13)
-        band_dict_surface = split_to_year_bands(timestep_dict_surface,yearcount = 13,bands=7,imagecountperyear=29)
+        timestep_dict_surface = split_images(array=surface_data,total_bands=46*7,yearcount=14)
+        band_dict_surface = split_to_year_bands(timestep_dict_surface,yearcount = 14,bands=7,imagecountperyear=46)
         #Process landcover data
         filepath_landcover = [i for i in list(Path(Path.cwd()/"TIFF"/country).resolve().iterdir()) if "LandCover" in str(i)][0]
         landcover_data = np.array(gdal.Open(str(filepath_landcover)).ReadAsArray(),dtype = 'uint16')
@@ -136,8 +136,8 @@ if __name__ == "__main__":
         filepath_temp = [i for i in list(Path(Path.cwd()/"TIFF"/country).resolve().iterdir()) if "Temperature" in str(i)][0]
         temp_data = np.array(gdal.Open(str(filepath_temp)).ReadAsArray(),dtype = 'uint16')
         temp_data = np.transpose(temp_data,axes = (1,2,0))
-        timestep_dict_temp = split_images(temp_data,29*2,13)
-        band_dict_temp = split_to_year_bands(timestep_dict_temp,yearcount = 13,bands=2,imagecountperyear=29)
+        timestep_dict_temp = split_images(temp_data,46*2,14)
+        band_dict_temp = split_to_year_bands(timestep_dict_temp,yearcount = 14,bands=2,imagecountperyear=46)
         #masking using landcover
         band_dict_surface_mask,band_dict_temp_mask,landcover_band_dict = mask_image(landcover_band_dict,band_dict_surface,band_dict_temp)
         merged_data = merge_bands(band_dict_surface_mask,band_dict_temp_mask)
