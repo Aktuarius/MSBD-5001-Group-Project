@@ -21,7 +21,7 @@ class ProcessAndExport:
         return accum
 
     def exportImage(img,desc,region,type_name):
-        task = ee.batch.Export.image.toDrive(image=img,folder = f"{desc}_{type_name}",description = desc,region=region,scale=500,crs = 'EPSG:4326')
+        task = ee.batch.Export.image.toDrive(image=img,folder = f"{desc}_{type_name}",description = desc,region=region,scale=5000,crs = 'EPSG:4326')
         task.start()
         while task.status()['state'] == "RUNNING":
             print("Running...")
@@ -80,7 +80,7 @@ if __name__ == "__main__":
     ee.Initialize(http_transport=_http_transport)
 
     geojson_path = list(Path(Path.cwd()/"Data"/"GeoJson").resolve().iterdir())[0]
-    countries = ["South Africa","Ethiopia","Malawi"]
+    countries = ["South Africa","Ethiopia"]
     surface_extract = ObtainGEEdata(collection_name='MODIS/MOD09A1',date1='2002-01-01',date2='2016-01-01',countries=countries,bands_idx=[0,1,2,3,4,5,6],type_name = "Surface")
     landcover_extract = ObtainGEEdata(collection_name='MODIS/006/MCD12Q1',date1='2002-01-01',date2='2016-01-01',countries=countries,bands_idx=[0],type_name = "LandCover")
     temp_extract = ObtainGEEdata(collection_name='MODIS/MYD11A2',date1='2002-07-04',date2='2016-07-03',countries=countries,bands_idx=[0,4],type_name = "Temperature")    
