@@ -6,67 +6,63 @@ from getpass import getpass
 import requests
 from pathlib import Path
 
+if __name__ == '__main__':
+    # parser = argparse.ArgumentParser(description = "Download MODIS Data")
+    # parser.add_argument("-dir","--directory",required = True)
+    # args = parser.parse_args()
 
-parser = argparse.ArgumentParser(description = "Download MODIS Data")
-parser.add_argument("-dir","--directory",required = True)
-args = parser.parse_args()
-
-savepath = os.path.join(args.directory,"Data")
-files = os.listdir(savepath)
-print(savepath)
-urs = 'urs.earthdata.nasa.gov'    # Address to call for authentication
-prompts = ['Enter NASA Earthdata Login Username: ',
-           'Enter NASA Earthdata Login Password: ']
-# --------------------------------AUTHENTICATION CONFIGURATION----------------------------------- #
-# Determine if netrc file exists, and if so, if it includes NASA Earthdata Login Credentials
-
-
-# --------------------------------READ FILES TO DOWNLOAD----------------------------------------- #
-#& files[0].endswi
-# th('.txt')
-if len(files) == 2:
-    filelist = open(os.path.join(args.directory,"Data",files[1]),'r').readlines()
-    print(filelist)
-    homeDir = os.path.join(os.path.join(args.directory,"Data"))
-    if savepath[-1] != "\\":
-        savepath = savepath + os.sep
-        print(savepath)
-    os.chdir(homeDir)
-
-    
-    if Path(os.path.join(homeDir,".netrc")).exists() == False:
-    # Popen('cd {}'.format(homeDir))
-        Popen('type nul > {0} | echo machine {1} >> {0}'.format(".netrc", urs), shell=True)
-        Popen('echo login {} >> {}'.format(getpass(prompt=prompts[0]), ".netrc"), shell=True)
-        Popen('echo password {} >> {}'.format(getpass(prompt=prompts[1]),".netrc"), shell=True)
-    
-    netrcpath = os.path.join(args.directory,"Data",".netrc")
-    print(netrcpath)
-    for file in filelist:
-        saveName = os.path.join(savepath,file.split('/')[-1].strip())
-        print(file.strip())
-        #output of netrc(netrcpath).authenticators(hostname) is ('Username', None, 'Password')
-        with requests.get(file.strip(),verify = False,stream = True,auth = (netrc(netrcpath).authenticators('urs.earthdata.nasa.gov')[0],netrc(netrcpath).authenticators('urs.earthdata.nasa.gov')[2])) as response:
-            if response.status_code != 200:
-                with open(os.path.join(args.directory,"log_fail.txt"),"a") as txt_file:
-                    txt_file.write("{} not downloaded".format(file.split('/')[-1].strip()))
-            else:
-                response.raw.decode_content = True
-                content = response.raw
-                with open(saveName, 'wb') as d:
-                    while True:
-                        chunk = content.read(16 * 1024)
-                        if not chunk:
-                            break
-                        d.write(chunk)
-                with open(os.path.join(args.directory,"log_works.txt"),"a") as txt_file:
-                        txt_file.write("{} downloaded".format(file.split('/')[-1].strip()))
+    savepath = os.path.join('D:\GitHub\MSBD-5001-Group-Project\DataExtracting',"Data")
+    files = os.listdir(savepath)
+    print('Save path: ', savepath)
+    urs = 'urs.earthdata.nasa.gov'    # Address to call for authentication
+    prompts = ['Enter NASA Earthdata Login Username: ',
+               'Enter NASA Earthdata Login Password: ']
+    # --------------------------------AUTHENTICATION CONFIGURATION----------------------------------- #
+    # Determine if netrc file exists, and if so, if it includes NASA Earthdata Login Credentials
 
 
+    # --------------------------------READ FILES TO DOWNLOAD----------------------------------------- #
+    #& files[0].endswi
+    # th('.txt')
+    if len(files) == 2:
+        filelist = open(os.path.join(args.directory,"Data",files[1]),'r').readlines()
+        print(filelist)
+        homeDir = os.path.join(os.path.join(args.directory,"Data"))
+        if savepath[-1] != "\\":
+            savepath = savepath + os.sep
+            print(savepath)
+        os.chdir(homeDir)
 
 
-else:
-    print("Download Directory should only contain one file and it should be txt file")
+        if Path(os.path.join(homeDir,".netrc")).exists() == False:
+        # Popen('cd {}'.format(homeDir))
+            Popen('type nul > {0} | echo machine {1} >> {0}'.format(".netrc", urs), shell=True)
+            Popen('echo login {} >> {}'.format(getpass(prompt=prompts[0]), ".netrc"), shell=True)
+            Popen('echo password {} >> {}'.format(getpass(prompt=prompts[1]),".netrc"), shell=True)
+
+        netrcpath = os.path.join(args.directory,"Data",".netrc")
+        print(netrcpath)
+        for file in filelist:
+            saveName = os.path.join(savepath,file.split('/')[-1].strip())
+            print(file.strip())
+            #output of netrc(netrcpath).authenticators(hostname) is ('Username', None, 'Password')
+            with requests.get(file.strip(),verify = False,stream = True,auth = (netrc(netrcpath).authenticators('urs.earthdata.nasa.gov')[0],netrc(netrcpath).authenticators('urs.earthdata.nasa.gov')[2])) as response:
+                if response.status_code != 200:
+                    with open(os.path.join(args.directory,"log_fail.txt"),"a") as txt_file:
+                        txt_file.write("{} not downloaded".format(file.split('/')[-1].strip()))
+                else:
+                    response.raw.decode_content = True
+                    content = response.raw
+                    with open(saveName, 'wb') as d:
+                        while True:
+                            chunk = content.read(16 * 1024)
+                            if not chunk:
+                                break
+                            d.write(chunk)
+                    with open(os.path.join(args.directory,"log_works.txt"),"a") as txt_file:
+                            txt_file.write("{} downloaded".format(file.split('/')[-1].strip()))
+    else:
+        print("Download Directory should only contain one file and it should be txt file")
 
 
 
@@ -90,16 +86,16 @@ else:
 
 
 
-# """
-# ---------------------------------------------------------------------------------------------------
-#  How to Access the LP DAAC Data Pool with Python
-#  The following Python code example demonstrates how to configure a connection to download data from
-#  an Earthdata Login enabled server, specifically the LP DAAC's Data Pool.
-# ---------------------------------------------------------------------------------------------------
-#  Author: Cole Krehbiel
-#  Last Updated: 05/14/2020
-# ---------------------------------------------------------------------------------------------------
-# """
+    # """
+    # ---------------------------------------------------------------------------------------------------
+    #  How to Access the LP DAAC Data Pool with Python
+    #  The following Python code example demonstrates how to configure a connection to download data from
+    #  an Earthdata Login enabled server, specifically the LP DAAC's Data Pool.
+    # ---------------------------------------------------------------------------------------------------
+    #  Author: Cole Krehbiel
+    #  Last Updated: 05/14/2020
+    # ---------------------------------------------------------------------------------------------------
+    # """
 # # Load necessary packages into Python
 # from subprocess import Popen
 # from getpass import getpass
