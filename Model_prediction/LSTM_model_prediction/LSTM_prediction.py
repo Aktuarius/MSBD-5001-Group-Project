@@ -11,12 +11,29 @@ from sklearn.metrics import mean_squared_error
 from collections import Counter
 from PIL import Image as im
 from mdn import MDN, get_mixture_loss_func
-
+from sklearn.preprocessing import MinMaxScaler
+import json
 
 def get_label_data() -> pd.DataFrame:
     label_path = str(Path(os.getcwd()).parent.parent.absolute()) + '/Yield_Data/all_country_crop_yield_tons_per_hectare.csv'
     df = pd.read_csv(label_path)
     df = df.set_index(['Country Name'])
+    df = df.iloc[:, :-3]
+    # scaler = MinMaxScaler(feature_range=(0, 50))
+    # temp = df.copy().to_numpy().reshape(-1, 1)
+    # scaler = scaler.fit(temp)
+    # for i in df.columns.tolist():
+    #     df[i] = scaler.transform(df[i].values.reshape(-1, 1))
+    # df.iloc[:, :] = scaler.fit_transform(df.iloc[:, :])
+
+
+    # processed_path = Path(str(Path(os.getcwd()).parent.parent.absolute()) + '/ProcessedHistograms')
+    # country_list = sorted(processed_path.glob('*'))
+    # countries_list_nme = [str(country).split('\\')[-1].replace('_', ' ') for country in country_list]
+    # temp2 = [i in countries_list_nme for i in df.index.tolist()]
+    # df2 = df[temp2]
+    # print('Max value in africa countries:', df2.max().max())
+    # print('Min value in africa countries:', df2.min().min())
     return df
 
 
@@ -35,7 +52,7 @@ def LSTM_Model(input_instance, features_size):
     # LSTM_model.compile(optimizer=Adam(), loss=MeanAbsoluteError())
     # LSTM_model.compile(optimizer=Adam(learning_rate=0.01), loss=MeanSquaredError())
     LSTM_model.add(MDN(n_features, m))
-    LSTM_model.compile(loss=get_mixture_loss_func(n_features, m), optimizer=Adam(lr=0.00001))
+    LSTM_model.compile(loss=get_mixture_loss_func(n_features, m), optimizer=Adam(lr=0.001))
     return LSTM_model
 
 
@@ -50,7 +67,7 @@ def LSTM_model_prediction() -> list:
     valid_x = valid_x.reshape(len(valid_x), len(valid_x[0]), len(valid_x[0][0]))
 
     LSTM_model = LSTM_Model(len(train_x[0]), len(train_x[0][0]))
-    LSTM_model.fit(train_x, train_y, epochs=10000, batch_size=len(train_x), validation_data=(valid_x, valid_y))
+    LSTM_model.fit(train_x, train_y, epochs=260, batch_size=len(train_x), validation_data=(valid_x, valid_y))
 
     # LSTM_pred = LSTM_model.predict(test_x)
     valid_pred = LSTM_model.predict(valid_x)
@@ -67,8 +84,12 @@ def LSTM_model_prediction() -> list:
     print('-' * 50)
     print(train_y[:10])
     print(train_pred[:10])
+    print('-' * 50)
+    print(valid_y[:10])
+    print(valid_pred[:10])
     LSTM_pred = []
     return LSTM_pred
+
 
 
 def LSTM_data_extraction_and_batching(df_label:pd.DataFrame) -> [list, list, list, list, list]:
@@ -101,14 +122,13 @@ def LSTM_data_extraction_and_batching(df_label:pd.DataFrame) -> [list, list, lis
                 if scaler_data is None:
                     scaler_data = data_array
                 data = np.transpose(data_array)
-                data = im.fromarray(data).resize((100, 15))
+                data = im.fromarray(data).resize((100, 10))
                 data = np.array(data)
                 data = (data - np.min(scaler_data)) / (np.max(scaler_data) - np.min(scaler_data))
                 # data = np.transpose(data)
                 for j in data:
                     counter_new += Counter(j)[0]
                     sum_new += len(j)
-
                 if year < '2015':
                     train_x.append(data)
                     train_y.append(country_label[year])
