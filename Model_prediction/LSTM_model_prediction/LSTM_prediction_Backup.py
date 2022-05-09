@@ -40,31 +40,25 @@ def get_water_data() -> pd.DataFrame:
     water_df = water_df.set_index('country_nme')
     return water_df
 
-def get_evdi_evi_data() -> [pd.DataFrame, pd.DataFrame]:
+def get_evdi_data():
     countries_list_nme = get_selected_africa_coutries_list()
-    processed_path = Path(str(Path(os.getcwd()).parent.parent.absolute()) + '/NDVI/Processed_edvi_data')
+    processed_path = Path(str(Path(os.getcwd()).parent.parent.absolute()) + '/NDVI')
     country_list = sorted(processed_path.glob('*'))
 
-    edvi = None
-    evi = None
-    column_list = []
-    for country in country_list:
-
-        data_list = sorted(country.glob('*.csv'))
-        country_nme = str(country).split('\\')[-1]
-        country_nme = country_nme.replace('_', ' ')
-        if country_nme not in countries_list_nme:
+    data = []
+    for i in country_list:
+        if ('.' in str(i)) or (str(i).split('\\')[-1] == 'Data'):
             continue
-        for i in data_list:
-            file_name = str(i).split('\\')[-1].split('_')[0]
-            if file_name == 'EVI':
-                evi.append(pd.read_csv(str(i)))
-            else:
-                edvi.append(pd.read_csv(str(i)))
-        column_list.append(country_nme)
-    edvi = pd.concat(edvi, axis=1)
-    evi = pd.concat(evi, axis=1)
-    return edvi, evi
+            
+        f = open(str(i))
+        water_data = json.load(f)
+        country_name = str(i).split('\\')[-1].split('.')[-2][:-5].replace('_', ' ')
+        water_data['country_nme'] = country_name
+        if country_name in countries_list_nme:
+            data.append(water_data)
+    water_df = pd.DataFrame(data=data)
+    water_df = water_df.set_index('country_nme')
+    return water_df
 
 def get_label_data() -> [pd.DataFrame, MinMaxScaler] :
     label_path = str(Path(os.getcwd()).parent.parent.absolute()) + '/Yield_Data/all_country_crop_yield_tons_per_hectare.csv'
@@ -138,69 +132,125 @@ class TestCallback(Callback):
 
 def LSTM_model_prediction() -> list:
     # data_test = normalize_test(data_test, 0, 1, scaler)
+
     df_label, scaler = get_label_data()
+
     opt_list = [Adam(learning_rate=0.001)
-                , Adam(learning_rate=0.0001)
-                , Adam(learning_rate=0.00001)
-                , Adamax(learning_rate=0.001)
-                , Adamax(learning_rate=0.0001)
-                ,Adamax(learning_rate=0.00001)
+                ,Adam(learning_rate=0.0001)
+                # ,Adam(learning_rate=0.00001)
+                ,Adamax(learning_rate=0.001)
+                ,Adamax(learning_rate=0.0001)
+                # ,Adamax(learning_rate=0.00001)
                 ]
+
     opt_list_str = ['Adam(lr=0.001)',
                 'Adam(lr=0.0001)',
                 'Adam(lr=0.00001)',
                 'Adamax(lr=0.001)',
                 'Adamax(lr=0.0001)',
                 'Adamax(lr=0.00001)']
-    dim_list = ['ori',
-                # (100, 10),
-                # (50, 50),
-                # (10, 100)
-                ]
-    dim_eval_object = []
 
-    lowest_valid_mape = []
-    epoch_list = [10000]
+    dim_list = [(100,10), (100, 100), (10, 100)]
 
-    for dim in dim_list:
-        all_opt_eval_object = []
-        for opt in opt_list:
-            for epoch in epoch_list:
-                train_x, train_y, test_x, valid_x, valid_y = LSTM_data_extraction_and_batching(df_label, dim)
-                train_x = train_x.reshape(len(train_x) , len(train_x[0]), len(train_x[0][0]))
-                valid_x = valid_x.reshape(len(valid_x), len(valid_x[0]), len(valid_x[0][0]))
-                epoch_eval = TestCallback((valid_x, valid_y), scaler)
-                LSTM_model = LSTM_Model(len(train_x[0]), len(train_x[0][0]), opt)
-                history = LSTM_model.fit(train_x, train_y, epochs=epoch, batch_size=len(train_x),
-                                         validation_data=(valid_x, valid_y),
-                                         callbacks=[epoch_eval])
-                all_opt_eval_object.append(epoch_eval)
-        print('Finished Training')
+    epoch_list = [100]
+    rmse_list = []
+    mape_list = []
 
-        # plt.figure(figsize=(10, 6), dpi=72)
-        # for i in range(len(all_opt_eval_object)):
-        #     eval_obj = all_opt_eval_object[i]
-        #     plt.plot(range(len(eval_obj.rmse_list)), eval_obj.rmse_list , label=opt_list_str[i])
-        # plt.legend()
-        # plt.title("RMSE comparison")
-        # plt.show()
-        #
-        # plt.figure(figsize=(10, 6), dpi=72)
-        # for i in range(len(all_opt_eval_object)):
-        #     eval_obj = all_opt_eval_object[i]
-        #     plt.plot(range(len(eval_obj.mape_list)), eval_obj.mape_list, label=opt_list_str[i])
-        # plt.legend()
-        # plt.title("MAPE comparison")
-        # plt.show()
-        min_mape = 1
-        for i in all_opt_eval_object:
-            if min_mape > min(i.mape_list):
-                min_mape = min(i.mape_list)
-        lowest_valid_mape.append(min_mape)
+    rmse_list_train = []
+    mape_list_train = []
 
-        dim_eval_object.append(all_opt_eval_object)
+    all_opt_eval_object = []
+    for opt in opt_list:
+        rmse_list_temp = []
+        mape_list_temp = []
 
-    print('Min MAPE for all three shape', lowest_valid_mape)
+        rmse_list_train_temp = []
+        mape_list_train_temp = []
+
+        for epoch in epoch_list:
+
+            train_x, train_y, test_x, valid_x, valid_y = LSTM_data_extraction_and_batching(df_label, dim_list[])
+
+            train_x = train_x.reshape(len(train_x) , len(train_x[0]), len(train_x[0][0]))
+            # test_x = test_x.reshape(len(test_x), len(test_x[0]), len(test_x[0][0]))
+            valid_x = valid_x.reshape(len(valid_x), len(valid_x[0]), len(valid_x[0][0]))
+
+            epoch_eval = TestCallback((valid_x, valid_y), scaler)
+
+            LSTM_model = LSTM_Model(len(train_x[0]), len(train_x[0][0]), opt)
+            history = LSTM_model.fit(train_x, train_y, epochs=epoch, batch_size=len(train_x),
+                                     validation_data=(valid_x, valid_y),
+                                     callbacks=[epoch_eval])
+
+            all_opt_eval_object.append(epoch_eval)
+    print('Finished Training')
+
+    plt.figure(figsize=(10, 6), dpi=72)
+    for i in range(len(all_opt_eval_object)):
+        eval_obj = all_opt_eval_object[i]
+        plt.plot(range(len(eval_obj.rmse_list)), eval_obj.rmse_list , label=opt_list_str[i])
+    plt.legend()
+    plt.title("RMSE comparison")
+    plt.show()
+
+    plt.figure(figsize=(10, 6), dpi=72)
+    for i in range(len(all_opt_eval_object)):
+        eval_obj = all_opt_eval_object[i]
+        plt.plot(range(len(eval_obj.mape_list)), eval_obj.mape_list, label=opt_list_str[i])
+    plt.legend()
+    plt.title("MAPE comparison")
+    plt.show()
+
+            # # LSTM_pred = LSTM_model.predict(test_x)
+            # valid_pred = LSTM_model.predict(valid_x)
+            # train_pred = LSTM_model.predict(train_x)
+            #
+            # train_pred = np.array([i[0] for i in train_pred])
+            # valid_pred = np.array([i[0] for i in valid_pred])
+            #
+            # train_y = scaler.inverse_transform(train_y.reshape(-1, 1))
+            # train_pred = scaler.inverse_transform(train_pred.reshape(-1, 1))
+            # valid_y = scaler.inverse_transform(valid_y.reshape(-1, 1))
+            # valid_pred = scaler.inverse_transform(valid_pred.reshape(-1, 1))
+            #
+            # rmse = mean_squared_error(train_y, train_pred)
+            # valid_rmse = mean_squared_error(valid_y, valid_pred)
+            #
+            # mape = abs((train_y - train_pred) / train_y).mean()
+            # valid_mape = abs((valid_y - valid_pred) / valid_y).mean()
+            #
+            # rmse_list_temp.append(valid_rmse)
+            # mape_list_temp.append(valid_mape)
+            # rmse_list_train_temp.append(rmse)
+            # mape_list_train_temp.append(mape)
+
+            # print('-' * 50)
+            # print('Training RMSE:', rmse, '\nValid RMSE', valid_rmse)
+            # print('-' * 50)
+            # print('Training MAPE:', mape, '\nValid MAPE:', valid_mape)
+            # print('-' * 50)
+
+        # rmse_list.append(rmse_list_temp)
+        # mape_list.append(mape_list_temp)
+        # rmse_list_train.append(rmse_list_train_temp)
+        # mape_list_train.append(mape_list_train_temp)
+
+    # print(rmse_list)
+    # print(mape_list)
+    # print(rmse_list_train)
+    # print(mape_list_train)
+
+
+    # plt.plot(range(len(history.history['val_loss'])), history.history['val_loss'], color='red', linewidth=1.0, linestyle='--' )
+    # plt.plot(range(len(history.history['loss'])), history.history['loss'], color='Blue', linewidth=1.0, linestyle='-' )
+    # plt.show()
+
+
+    # print(train_y[:10])
+    # print(train_pred[:10])
+    # print('-' * 50)
+    # print(valid_y[:10])
+    # print(valid_pred[:10])
     LSTM_pred = []
 
     return LSTM_pred
@@ -232,10 +282,9 @@ def LSTM_data_extraction_and_batching(df_label:pd.DataFrame, resize_dim) -> [lis
                 if scaler_data is None:
                     scaler_data = data_array
                 data = np.transpose(data_array)
-                if resize_dim != 'ori':
-                    data = im.fromarray(data).resize(resize_dim)
-                    data = np.array(data)
-                # data = (data - np.min(scaler_data)) / (np.max(scaler_data) - np.min(scaler_data))
+                data = im.fromarray(data).resize(resize_dim)
+                data = np.array(data)
+                data = (data - np.min(scaler_data)) / (np.max(scaler_data) - np.min(scaler_data))
                 # data = np.transpose(data)
                 for j in data:
                     counter_new += Counter(j)[0]
