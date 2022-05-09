@@ -40,16 +40,15 @@ def get_water_data() -> pd.DataFrame:
     water_df = water_df.set_index('country_nme')
     return water_df
 
-def get_evdi_evi_data() -> [pd.DataFrame, pd.DataFrame]:
+def get_ndvi_evi_data() -> [pd.DataFrame, pd.DatamFrame]:
     countries_list_nme = get_selected_africa_coutries_list()
-    processed_path = Path(str(Path(os.getcwd()).parent.parent.absolute()) + '/NDVI/Processed_edvi_data')
+    processed_path = Path(str(Path(os.getcwd()).absolute()) + '/Processed_edvi_data')
     country_list = sorted(processed_path.glob('*'))
-
-    edvi = None
-    evi = None
-    column_list = []
+    ndvi = []
+    evi = []
+    ndvi_index_list = None
+    evi_index_list = None
     for country in country_list:
-
         data_list = sorted(country.glob('*.csv'))
         country_nme = str(country).split('\\')[-1]
         country_nme = country_nme.replace('_', ' ')
@@ -57,14 +56,26 @@ def get_evdi_evi_data() -> [pd.DataFrame, pd.DataFrame]:
             continue
         for i in data_list:
             file_name = str(i).split('\\')[-1].split('_')[0]
-            if file_name == 'EVI':
-                evi.append(pd.read_csv(str(i)))
+            temp_data = pd.read_csv(str(i), index_col = 0)
+            temp_data.columns = [country_nme]
+
+            if file_name == 'NDVI':
+                if ndvi_index_list is None:
+                    ndvi_index_list = temp_data.index.tolist()
+                temp_data = temp_data.reset_index(drop=True)
+                ndvi.append(temp_data)
             else:
-                edvi.append(pd.read_csv(str(i)))
+                if evi_index_list is None:
+                    evi_index_list = temp_data.index.tolist()
+                temp_data = temp_data.reset_index(drop=True)
+                evi.append(temp_data)
+
         column_list.append(country_nme)
-    edvi = pd.concat(edvi, axis=1)
-    evi = pd.concat(evi, axis=1)
-    return edvi, evi
+    ndvi_df = pd.concat(ndvi, axis=1)
+    evi_df = pd.concat(evi, axis=1)
+    ndvi_df.index = ndvi_index_list
+    evi_df.index = evi_index_list
+    return ndvi_df, evi_df
 
 def get_label_data() -> [pd.DataFrame, MinMaxScaler] :
     label_path = str(Path(os.getcwd()).parent.parent.absolute()) + '/Yield_Data/all_country_crop_yield_tons_per_hectare.csv'
