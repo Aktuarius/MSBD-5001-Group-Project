@@ -111,14 +111,36 @@ def create_histograms(merged_data):
         merged_hist_data[year] = hist
     return merged_hist_data
 
+
 def flatten_bins_bands(merged_hist_data):
     for year in merged_hist_data:
-        merged_hist_data[year] = np.reshape(np.transpose(merged_hist_data[year],axes = (0,2,1)),newshape=(576,29),order = 'F')
+        merged_hist_data[year] = np.reshape(np.transpose(merged_hist_data[year],axes = (0,2,1)),newshape=(576,46),order = 'F')
     return merged_hist_data
+
+#Creates a json dictionary having the count of pixels which cover non ocean water regions
+def create_water_pixels(filepath,country):
+    data = gdal.Open(str(filepath))
+    water_area_dict = dict()
+    cols = data.RasterXSize
+    rows = data.RasterYSize
+    year = 2002
+    for i in range(1,15):
+        watermask = data.GetRasterBand((i * 2) - 1).ReadAsArray(0,0,cols,rows)
+        oceanmask = data.GetRasterBand(i * 2).ReadAsArray(0,0,cols,rows)
+        idx_non_ocean = np.where(oceanmask != 4) 
+        idx_ocean = np.where(oceanmask == 4)
+        oceanmask[idx_non_ocean] = 1
+        oceanmask[idx_ocean] = 0
+        water_area_dict[str(year)] = int(np.sum(watermask * oceanmask))
+        year += 1
+    with open(str(Path(Path.cwd(),"..","WaterProcessed",f"{country}Water.json").resolve()),'w')  as f:
+        json.dump(water_area_dict,f)
+
+
 
 if __name__ == "__main__":
     #,"Ethiopia","Malawi"
-    for country in ['Kenya']:
+    for country in ['Rwanda']:
         #Process surface data
         filepath_surface = [i for i in list(Path(Path.cwd()/"TIFF"/country).resolve().iterdir()) if "Surface" in str(i)][0]
         surface_data = gdal.Open(str(filepath_surface)).ReadAsArray()
@@ -130,7 +152,6 @@ if __name__ == "__main__":
         landcover_data = np.array(gdal.Open(str(filepath_landcover)).ReadAsArray(),dtype = 'uint16')
         landcover_data = np.transpose(landcover_data,axes = (1,2,0))
         landcover_data = filter_cropland(landcover_data)
-        landcover_data = extend_landcover(landcover_data,1)
         landcover_band_dict = divide_to_years(landcover_data)
         #Process Temperature
         filepath_temp = [i for i in list(Path(Path.cwd()/"TIFF"/country).resolve().iterdir()) if "Temperature" in str(i)][0]
@@ -145,4 +166,9 @@ if __name__ == "__main__":
         merged_hist_data = flatten_bins_bands(merged_hist_data)
         #start year = 2009
         for i in merged_hist_data:
-            np.save(str(Path(Path.cwd(),"ProcessedHistograms",f"{country}_{2009 + i - 1}.npy").resolve()),merged_hist_data[i])
+            #The file path might change depending on file structure, so please change as required for your system
+            np.save(str(Path(Path.cwd(),"ProcessedHistograms",f"{country}_{2002 + i - 1}.npy").resolve()),merged_hist_data[i])
+        #Process WaterCover
+        gdal_water_path = [i for i in Path(Path.cwd(),"..","TIFF",country).resolve().iterdir() if "WaterCover" in str(i)][0]
+        create_water_pixels(gdal_water_path,country)
+
