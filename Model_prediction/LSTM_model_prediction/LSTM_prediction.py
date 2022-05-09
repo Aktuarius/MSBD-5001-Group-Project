@@ -14,6 +14,49 @@ from mdn import MDN, get_mixture_loss_func
 from sklearn.preprocessing import MinMaxScaler
 import json
 
+
+def get_selected_africa_coutries_list() -> list:
+    processed_path = Path(str(Path(os.getcwd()).parent.parent.absolute()) + '/ProcessedHistograms')
+    country_list = sorted(processed_path.glob('*'))
+    return [str(country).split('\\')[-1].replace('_', ' ') for country in country_list]
+
+
+def get_water_data() -> pd.DataFrame:
+    countries_list_nme = get_selected_africa_coutries_list()
+    processed_path = Path(str(Path(os.getcwd()).parent.parent.absolute()) + '/WaterProcessed')
+    country_list = sorted(processed_path.glob('*'))
+    data = []
+    for i in country_list:
+        f = open(str(i))
+        water_data = json.load(f)
+        country_name =  str(i).split('\\')[-1].split('.')[-2][:-5].replace('_', ' ')
+        water_data['country_nme'] = country_name
+        if country_name in countries_list_nme:
+            data.append(water_data)
+    water_df = pd.DataFrame(data=data)
+    water_df = water_df.set_index('country_nme')
+    return water_df
+
+def get_evdi_data():
+    countries_list_nme = get_selected_africa_coutries_list()
+    processed_path = Path(str(Path(os.getcwd()).parent.parent.absolute()) + '/NDVI')
+    country_list = sorted(processed_path.glob('*'))
+
+    data = []
+    for i in country_list:
+        if ('.' in str(i)) or (str(i).split('\\')[-1] == 'Data'):
+            continue
+            
+        f = open(str(i))
+        water_data = json.load(f)
+        country_name = str(i).split('\\')[-1].split('.')[-2][:-5].replace('_', ' ')
+        water_data['country_nme'] = country_name
+        if country_name in countries_list_nme:
+            data.append(water_data)
+    water_df = pd.DataFrame(data=data)
+    water_df = water_df.set_index('country_nme')
+    return water_df
+
 def get_label_data() -> pd.DataFrame:
     label_path = str(Path(os.getcwd()).parent.parent.absolute()) + '/Yield_Data/all_country_crop_yield_tons_per_hectare.csv'
     df = pd.read_csv(label_path)
@@ -27,9 +70,9 @@ def get_label_data() -> pd.DataFrame:
     # df.iloc[:, :] = scaler.fit_transform(df.iloc[:, :])
 
 
-    # processed_path = Path(str(Path(os.getcwd()).parent.parent.absolute()) + '/ProcessedHistograms')
-    # country_list = sorted(processed_path.glob('*'))
-    # countries_list_nme = [str(country).split('\\')[-1].replace('_', ' ') for country in country_list]
+    processed_path = Path(str(Path(os.getcwd()).parent.parent.absolute()) + '/ProcessedHistograms')
+    country_list = sorted(processed_path.glob('*'))
+    countries_list_nme = [str(country).split('\\')[-1].replace('_', ' ') for country in country_list]
     # temp2 = [i in countries_list_nme for i in df.index.tolist()]
     # df2 = df[temp2]
     # print('Max value in africa countries:', df2.max().max())
@@ -153,8 +196,9 @@ def LSTM_data_extraction_and_batching(df_label:pd.DataFrame) -> [list, list, lis
 
 
 if __name__ == '__main__':
-    df_label = get_label_data()
+    # df_label = get_label_data()
+    temp = get_water_data()
     # train_x, train_y, test_x, valid_x, valid_y = LSTM_data_extraction_and_batching(df_label)
-    LSTM_pred = LSTM_model_prediction()
+    # LSTM_pred = LSTM_model_prediction()
     # print('Prediction:', LSTM_pred)
     a = 3
