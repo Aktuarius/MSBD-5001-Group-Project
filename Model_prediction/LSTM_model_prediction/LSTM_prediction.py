@@ -21,7 +21,7 @@ from tensorflow.keras import metrics
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import GridSearchCV
 from tensorflow import keras
-
+from sklearn.linear_model import Ridge
 
 
 def get_selected_africa_coutries_list() -> list:
@@ -290,28 +290,26 @@ def hybrid_prediction():
     df_label, scaler = get_label_data()
     train_x, train_y, test_x, valid_x, valid_y, hm_train_x, hm_valid_x = LSTM_data_extraction_and_batching(df_label, 'ori')
 
-    # df_scaler = MinMaxScaler(feature_range=(0,2)).fit(hm_train_x.iloc[:, :])
-    # hm_train_x.iloc[:, :] = df_scaler.transform(hm_train_x.iloc[:, :])
-    # hm_test_x.iloc[:, :] = df_scaler.transform(hm_test_x.iloc[:, :])
-
+    df_scaler = MinMaxScaler(feature_range=(0,4)).fit(hm_train_x.iloc[:, :])
+    hm_train_x.iloc[:, :] = df_scaler.transform(hm_train_x.iloc[:, :])
+    hm_valid_x.iloc[:, :] = df_scaler.transform(hm_valid_x.iloc[:, :])
 
     model = keras.models.load_model('D:\Saved_LSTM_model\model1')
 
-
-    train_pred = scaler.inverse_transform(model.predict(train_x).reshape(-1,1))
-    valid_pred = scaler.inverse_transform(model.predict(valid_x).reshape(-1,1))
+    train_pred = model.predict(train_x)
+    valid_pred = model.predict(valid_x)
 
     hm_train_x['lstm_pred'] = train_pred
     hm_valid_x['lstm_pred'] = valid_pred
 
+    hm_train_x['label'] = train_y
+    hm_valid_x['label'] = valid_y
 
-    hm_train_x['label'] = scaler.inverse_transform(train_y.reshape(-1, 1))
-    hm_valid_x['label'] = scaler.inverse_transform(valid_y.reshape(-1, 1))
 
-    predictor = TabularPredictor(label='label', path=r'D:\automl\save', problem_type='regression').fit(hm_train_x, presets=['best_quality'], num_stack_levels=3)
-    auto_pred = predictor.predict(hm_valid_x)
-
-    print('LSTM + AUTOML, MAPE:', abs((valid_y - auto_pred) / valid_y).mean())
+    # predictor = TabularPredictor(label='label', path=r'D:\automl\save', problem_type='regression').fit(hm_train_x, presets=['best_quality'], num_stack_levels=2)
+    # auto_pred = predictor.predict(hm_valid_x)
+    #
+    # print('LSTM + AUTOML, MAPE:', abs((valid_y - auto_pred) / valid_y).mean())
 
     # gs_rf = GridSearchCV(estimator= RandomForestRegressor(), param_grid=params_setting,cv=5, n_jobs=-1, verbose=2)
     # gs_rf.fit(hm_train_x, train_y)
@@ -341,6 +339,7 @@ def LSTM_data_extraction_and_batching(df_label:pd.DataFrame, resize_dim) -> [lis
     evi_mean_train_x, evi_mean_test_x = [], []
     evi_max_train_x, evi_max_test_x = [], []
     evi_min_train_x, evi_min_test_x = [], []
+    year_train_x, year_test_x = [], []
 
     counter, sum,counter_new, sum_new= 0, 0, 0, 0
 
@@ -356,6 +355,8 @@ def LSTM_data_extraction_and_batching(df_label:pd.DataFrame, resize_dim) -> [lis
         country_nme = str(country).split('\\')[-1]
         country_nme = country_nme.replace('_', ' ')
 
+        # if country_nme == 'Madagascar':
+        #     print('333')
         try:
             country_label = df_label.loc[country_nme]
             water_label = water_data.loc[country_nme]
@@ -392,6 +393,7 @@ def LSTM_data_extraction_and_batching(df_label:pd.DataFrame, resize_dim) -> [lis
                     evi_mean_train_x.append(evi_mean_label[year])
                     evi_max_train_x.append(evi_max_label[year])
                     evi_min_train_x.append(evi_min_label[year])
+                    year_train_x.append(int(year))
 
                 elif year < '2019':
                     valid_x.append(data)
@@ -404,6 +406,8 @@ def LSTM_data_extraction_and_batching(df_label:pd.DataFrame, resize_dim) -> [lis
                     evi_mean_test_x.append(evi_mean_label[year])
                     evi_max_test_x.append(evi_max_label[year])
                     evi_min_test_x.append(evi_min_label[year])
+                    year_test_x.append(int(year))
+
                 else:
                     test_x.append(data)
         except KeyError:
@@ -419,32 +423,59 @@ def LSTM_data_extraction_and_batching(df_label:pd.DataFrame, resize_dim) -> [lis
     # print('Number of sum element new:', sum_new)
     # print('Percentage of 0 new:', counter_new/sum_new)
 
-    hybrid_model_train_data = pd.DataFrame(data={'water':water_train_x,
+    hybrid_model_train_data = pd.DataFrame(data={
+                                                 # 'water':water_train_x,
                                                  'ndvi_mean':ndvi_mean_train_x,
-                                                 'ndvi_max':ndvi_max_train_x,
-                                                 'ndvi_min':ndvi_min_train_x,
+                                                 # 'ndvi_max':ndvi_max_train_x,
+                                                 # 'ndvi_min':ndvi_min_train_x,
                                                  'evi_mean':evi_mean_train_x,
-                                                 'evi_max':evi_max_train_x,
-                                                 'evi_min':evi_min_train_x
+                                                 # 'evi_max':evi_max_train_x,
+                                                 # 'evi_min':evi_min_train_x,
+                                                 'year': year_train_x
                                                  })
 
-    hybrid_model_test_data = pd.DataFrame(data={'water':water_test_x,
+    hybrid_model_test_data = pd.DataFrame(data={
+                                                 # 'water':water_test_x,
                                                  'ndvi_mean':ndvi_mean_test_x,
-                                                 'ndvi_max':ndvi_max_test_x,
-                                                 'ndvi_min':ndvi_min_test_x,
+                                                 # 'ndvi_max':ndvi_max_test_x,
+                                                 # 'ndvi_min':ndvi_min_test_x,
                                                  'evi_mean':evi_mean_test_x,
-                                                 'evi_max':evi_max_test_x,
-                                                 'evi_min':evi_min_test_x
+                                                 # 'evi_max':evi_max_test_x,
+                                                 # 'evi_min':evi_min_test_x,
+                                                 'year':year_test_x
                                                  })
 
     return np.array(train_x), np.array(train_y), np.array(test_x), np.array(valid_x), np.array(valid_y), hybrid_model_train_data, hybrid_model_test_data
 
 
 if __name__ == '__main__':
-    # df_label, scaler = get_label_data()
+    df_label, scaler = get_label_data()
     # temp = get_water_data()
-    # train_x, train_y, test_x, valid_x, valid_y, hm_train_x, hm_test_x = LSTM_data_extraction_and_batching(df_label, 'ori')
+    train_x, train_y, test_x, valid_x, valid_y, hm_train_x, hm_valid_x = LSTM_data_extraction_and_batching(df_label, 'ori')
+
+    df_scaler = MinMaxScaler(feature_range=(0,4)).fit(hm_train_x.iloc[:, :])
+    hm_train_x.iloc[:, :] = df_scaler.transform(hm_train_x.iloc[:, :])
+    hm_valid_x.iloc[:, :] = df_scaler.transform(hm_valid_x.iloc[:, :])
+
+    params_setting = {'alpha': [i/10000 for i in range(1, 100000, 100)]}
+
+    gs_ridge = GridSearchCV(estimator= Ridge(), param_grid=params_setting,cv=5, n_jobs=-1, verbose=2)
+    gs_ridge.fit(hm_train_x, train_y)
+
+
+    valid_pred = gs_ridge.predict(hm_valid_x)
+
+    valid_y = scaler.inverse_transform(valid_y.reshape(-1, 1))
+    valid_pred = scaler.inverse_transform(valid_pred.reshape(-1, 1))
+    valid_rmse = mean_squared_error(valid_y, valid_pred, squared=False)
+    valid_mape = abs((valid_y - valid_pred) / valid_y).mean()
+
+    print('Best estimator', gs_ridge.best_estimator_)
+    print('Best score', gs_ridge.best_score_)
+    print('RMSE', RMSE)
+    print('MAPE', MAPE)
+
     # LSTM_pred = LSTM_model_prediction()
     # print('Prediction:', LSTM_pred)
-    hybrid_prediction()
+    # hybrid_prediction()
     a = 3
