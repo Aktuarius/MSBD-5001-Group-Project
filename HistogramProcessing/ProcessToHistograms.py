@@ -140,7 +140,7 @@ def create_water_pixels(filepath,country):
 
 if __name__ == "__main__":
     #,"Ethiopia","Malawi"
-    for country in ['Rwanda']:
+    for country in ["South Africa","Ethiopia","Malawi"]:
         #Process surface data
         filepath_surface = [i for i in list(Path(Path.cwd()/"TIFF"/country).resolve().iterdir()) if "Surface" in str(i)][0]
         surface_data = gdal.Open(str(filepath_surface)).ReadAsArray()
