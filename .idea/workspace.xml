@@ -7,7 +7,7 @@
     <list default="true" id="3d65b124-0fd3-413d-929b-b24e840c36fa" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Model_prediction/LSTM_model_prediction/LSTM_prediction.py" beforeDir="false" afterPath="$PROJECT_DIR$/Model_prediction/LSTM_model_prediction/LSTM_prediction.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NDVI/Untitled.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/NDVI/Untitled.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Ridge_Regression/BaselineRidgeRegressionL2_V1.3.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Ridge_Regression/BaselineRidgeRegressionL2_V1.3.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -203,8 +203,78 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Model_prediction/LSTM_model_prediction/LSTM_prediction.py</url>
-          <line>214</line>
+          <line>277</line>
           <option name="timeStamp" value="20" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Model_prediction/LSTM_model_prediction/LSTM_prediction.py</url>
+          <line>276</line>
+          <option name="timeStamp" value="35" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Model_prediction/LSTM_model_prediction/LSTM_prediction.py</url>
+          <line>251</line>
+          <option name="timeStamp" value="36" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Model_prediction/LSTM_model_prediction/LSTM_prediction.py</url>
+          <line>481</line>
+          <option name="timeStamp" value="37" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Model_prediction/LSTM_model_prediction/LSTM_prediction.py</url>
+          <line>317</line>
+          <option name="timeStamp" value="40" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Model_prediction/LSTM_model_prediction/LSTM_prediction.py</url>
+          <line>319</line>
+          <option name="timeStamp" value="42" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Model_prediction/LSTM_model_prediction/LSTM_prediction.py</url>
+          <line>318</line>
+          <option name="timeStamp" value="43" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Model_prediction/LSTM_model_prediction/LSTM_prediction.py</url>
+          <line>320</line>
+          <option name="timeStamp" value="44" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Model_prediction/LSTM_model_prediction/LSTM_prediction.py</url>
+          <line>321</line>
+          <option name="timeStamp" value="45" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Model_prediction/LSTM_model_prediction/LSTM_prediction.py</url>
+          <line>311</line>
+          <option name="timeStamp" value="46" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Model_prediction/LSTM_model_prediction/LSTM_prediction.py</url>
+          <line>358</line>
+          <option name="timeStamp" value="50" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Model_prediction/LSTM_model_prediction/LSTM_prediction.py</url>
+          <line>417</line>
+          <option name="timeStamp" value="51" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Model_prediction/LSTM_model_prediction/LSTM_prediction.py</url>
+          <line>462</line>
+          <option name="timeStamp" value="52" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Model_prediction/LSTM_model_prediction/LSTM_prediction.py</url>
+          <line>461</line>
+          <option name="timeStamp" value="55" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Model_prediction/LSTM_model_prediction/LSTM_prediction.py</url>
+          <line>475</line>
+          <option name="timeStamp" value="56" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
